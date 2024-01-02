@@ -5,7 +5,7 @@ from pentago import PentagoGame
 # Define constants
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-BACKGROUND = (89, 19, 4)
+BACKGROUND = (69, 14, 4)
 GRID_SIZE = 3  # Size of each subgrid
 NUM_WIN = 5  # number of pieces you need in a row to win
 
@@ -71,7 +71,7 @@ while True:
     # Draw the game board
     for row in range(6):
         for col in range(6):
-            pygame.draw.circle(screen, BACKGROUND-10, (col * (WINDOW_SIZE[0] // 6) + WINDOW_SIZE[0] // 12,
+            pygame.draw.circle(screen, (BACKGROUND[0]-10, BACKGROUND[1]-10, BACKGROUND[2]), (col * (WINDOW_SIZE[0] // 6) + WINDOW_SIZE[0] // 12,
                                                   row * (WINDOW_SIZE[1] // 6) + WINDOW_SIZE[1] // 12),
                                    min(WINDOW_SIZE[0] // 15, WINDOW_SIZE[1] // 15))
 
@@ -88,10 +88,10 @@ while True:
                                    min(WINDOW_SIZE[0] // 15, WINDOW_SIZE[1] // 15))
 
     # Draw rotation indicator lines
-    pygame.draw.line(screen, WHITE, (0, WINDOW_SIZE[1] // 2),
-                     (WINDOW_SIZE[0], (WINDOW_SIZE[1] // 2)), (WINDOW_SIZE[0] // 20))
-    pygame.draw.line(screen, WHITE, (WINDOW_SIZE[0] // 2, 0),
-                     (WINDOW_SIZE[0] // 2, WINDOW_SIZE[1]), (WINDOW_SIZE[0] // 20))
+    pygame.draw.line(screen, (WHITE[0]-50, WHITE[1]-50, WHITE[2]-60), (0, WINDOW_SIZE[1] // 2),
+                     (WINDOW_SIZE[0], (WINDOW_SIZE[1] // 2)), (WINDOW_SIZE[0] // 60))
+    pygame.draw.line(screen, (WHITE[0]-50, WHITE[1]-50, WHITE[2]-60), (WINDOW_SIZE[0] // 2, 0),
+                     (WINDOW_SIZE[0] // 2, WINDOW_SIZE[1]), (WINDOW_SIZE[0] // 60))
 
 
     # Draw player turn indicator
