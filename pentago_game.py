@@ -2,6 +2,7 @@ import numpy as np
 import pygame
 import sys
 from pentago import PentagoGame
+from jonny_pentago_bot import JonnyBot
 # Define constants
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -20,50 +21,60 @@ pygame.display.set_caption("Pentago")
 # Set up the game
 pentago_game = PentagoGame()
 
+# Set up the bot
+jonny_bot = JonnyBot(1, pentago_game.board)
+
 # Main game loop
 while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            mouse_pos = pygame.mouse.get_pos()
-            row = mouse_pos[1] // (WINDOW_SIZE[1] // 6)
-            col = mouse_pos[0] // (WINDOW_SIZE[0] // 6)
-
-            if event.button == 1:  # Left-click
-                move = (row, col)
-                pentago_game.make_move(pentago_game.current_player, move)
-
-        elif event.type == pygame.KEYDOWN:
-            mouse_pos = pygame.mouse.get_pos()
-            row = mouse_pos[1] // (WINDOW_SIZE[1] // 6)
-            col = mouse_pos[0] // (WINDOW_SIZE[0] // 6)
-            if event.key == pygame.K_r:  # Press 'r' key to rotate right
-                quadrant = (row // 3) * 2 + (col // 3)
-                direction = 'CC'
-                if (not pentago_game.hasRotated):
-                    pentago_game.rotate_grid(quadrant, direction)
-
-            elif event.key == pygame.K_l:  # Press 'l' key to rotate left
-                quadrant = (row // 3) * 2 + (col // 3)
-                direction = 'C'
-                if (not pentago_game.hasRotated):
-                    pentago_game.rotate_grid(quadrant, direction)
-
-            # Check for a winner after every move
-            winner = pentago_game.check_winner()
-            if winner != 0:
-                print(f"Player {winner} wins!")
+    if(pentago_game.current_player == jonny_bot.color):
+        jonny_bot.update_board(pentago_game.board)
+        move = jonny_bot.compute_move()
+        pentago_game.make_move(pentago_game.current_player, move)
+        quadrant, direction = jonny_bot.compute_rotation()
+        pentago_game.rotate_grid(quadrant, direction)
+    else:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
 
-            # Switch to the next player
-            if (pentago_game.hasPlaced and pentago_game.hasRotated):
-                pentago_game.current_player *= -1
-                pentago_game.hasPlaced = False
-                pentago_game.hasRotated = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                row = mouse_pos[1] // (WINDOW_SIZE[1] // 6)
+                col = mouse_pos[0] // (WINDOW_SIZE[0] // 6)
+
+                if event.button == 1:  # Left-click
+                    move = (row, col)
+                    pentago_game.make_move(pentago_game.current_player, move)
+
+            elif event.type == pygame.KEYDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                row = mouse_pos[1] // (WINDOW_SIZE[1] // 6)
+                col = mouse_pos[0] // (WINDOW_SIZE[0] // 6)
+                if event.key == pygame.K_r:  # Press 'r' key to rotate right
+                    quadrant = (row // 3) * 2 + (col // 3)
+                    direction = 'CC'
+                    if (not pentago_game.hasRotated):
+                        pentago_game.rotate_grid(quadrant, direction)
+
+                elif event.key == pygame.K_l:  # Press 'l' key to rotate left
+                    quadrant = (row // 3) * 2 + (col // 3)
+                    direction = 'C'
+                    if (not pentago_game.hasRotated):
+                        pentago_game.rotate_grid(quadrant, direction)
+
+    # Check for a winner after every move
+    winner = pentago_game.check_winner()
+    if winner != 0:
+        print(f"Player {winner} wins!")
+        pygame.quit()
+        sys.exit()
+
+    # Switch to the next player
+    if (pentago_game.hasPlaced and pentago_game.hasRotated):
+        pentago_game.current_player *= -1
+        pentago_game.hasPlaced = False
+        pentago_game.hasRotated = False
 
     # Draw the current game state on the Pygame window
     screen.fill(BACKGROUND)  # Clear the screen
