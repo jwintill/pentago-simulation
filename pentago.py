@@ -15,24 +15,35 @@ class PentagoGame:
         self.board = np.zeros((6, 6), dtype=int)
         self.current_player = 1  # 1 for player 1, -1 for player 2
         self.current_move = None  # Store the current move for left-click removal logic
+        self.num_actions = 0 # 0 for no action done, 1 for one action done, 2 for two actions done, ending the turn
 
     def make_move(self, player, move):
         row, col = move
-        if self.board[row, col] == 0:
+        if(move == self.current_move):
+            self.board[row, col] = 0
+            self.num_actions -= 1
+            self.current_move = None
+        elif self.board[row, col] == 0 and self.num_actions != 1:
             self.board[row, col] = player
             self.current_move = move  # Store the current move for left-click removal logic
+            self.num_actions += 1
 
     def rotate_grid(self, quadrant, direction):
-        # Implement the logic for rotating a 3x3 subgrid
-        start_row, end_row, start_col, end_col = quadrant * GRID_SIZE, (quadrant + 1) * GRID_SIZE, 0, GRID_SIZE
+        # Calculate start and end indices based on quadrant
+        start_row, end_row = (quadrant // 2) * GRID_SIZE, ((quadrant // 2) + 1) * GRID_SIZE
+        start_col, end_col = (quadrant % 2) * GRID_SIZE, ((quadrant % 2) + 1) * GRID_SIZE
+
+        if quadrant == 2:
+            start_col, end_col = 3 - end_col, 3 - start_col
 
         subgrid = np.copy(self.board[start_row:end_row, start_col:end_col])
-        if direction == 'C':
+        if direction == 'CC':
             subgrid = np.rot90(subgrid, k=-1)
-        elif direction == 'CC':
+        elif direction == 'C':
             subgrid = np.rot90(subgrid)
 
         self.board[start_row:end_row, start_col:end_col] = subgrid
+        self.num_actions += 1
 
     def check_winner(self):
         # Implement the logic for checking if there is a winner
@@ -78,10 +89,23 @@ while True:
             if event.button == 1:  # Left-click
                 move = (row, col)
                 pentago_game.make_move(pentago_game.current_player, move)
-            elif event.button == 3:  # Right-click
-                quadrant = col // GRID_SIZE
-                direction = 'C' if row < GRID_SIZE else 'CC'
+            
+        elif event.type == pygame.KEYDOWN:
+            mouse_pos = pygame.mouse.get_pos()
+            row = mouse_pos[1] // (WINDOW_SIZE[1] // 6)
+            col = mouse_pos[0] // (WINDOW_SIZE[0] // 6)
+            if event.key == pygame.K_r:  # Press 'r' key to rotate right
+                quadrant = (row // 3) * 2 + (col // 3)
+                direction = 'CC'
+                print(quadrant)
                 pentago_game.rotate_grid(quadrant, direction)
+
+            elif event.key == pygame.K_l:  # Press 'l' key to rotate left
+                quadrant = (row // 3) * 2 + (col // 3)
+                direction = 'C'
+                print(quadrant)
+                pentago_game.rotate_grid(quadrant, direction)
+
 
             # Check for a winner
             winner = pentago_game.check_winner()
@@ -91,7 +115,9 @@ while True:
                 sys.exit()
 
             # Switch to the next player
-            pentago_game.current_player *= -1
+            if(pentago_game.num_actions == 2):
+                pentago_game.current_player *= -1
+                pentago_game.num_actions = 0
 
     # Draw the current game state on the Pygame window
     screen.fill((89, 19, 4))  # Clear the screen
@@ -115,11 +141,11 @@ while True:
                                    min(WINDOW_SIZE[0] // 15, WINDOW_SIZE[1] // 15))
 
     # Draw rotation indicator lines
-    for row in range(6):
-        for col in range(6):
-            if col % GRID_SIZE == 0 and row % GRID_SIZE == 0:
-                pygame.draw.line(screen, BLACK, (col * (WINDOW_SIZE[0] // 6), row * (WINDOW_SIZE[1] // 6)),
-                                 ((col + GRID_SIZE) * (WINDOW_SIZE[0] // 6), (col + GRID_SIZE) * (WINDOW_SIZE[0] // 6)), 2)
+    pygame.draw.line(screen, WHITE, (0, WINDOW_SIZE[1] // 2),
+                     (WINDOW_SIZE[0], (WINDOW_SIZE[1] // 2)), (WINDOW_SIZE[0] // 20))
+    pygame.draw.line(screen, WHITE, (WINDOW_SIZE[0] // 2, 0),
+                     (WINDOW_SIZE[0] // 2, WINDOW_SIZE[1]), (WINDOW_SIZE[0] // 20))
+
 
     # Draw player turn indicator
     player_turn_text = f"Player {1 if pentago_game.current_player == 1 else 2}'s turn"
